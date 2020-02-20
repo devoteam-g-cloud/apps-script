@@ -4,10 +4,10 @@
  * Run setup() function first
  */
 
-const FORM_ID = '1Kl1TsAq5BlWlFRryvi0sF8IdahMIbaiuOx9JN5bgNd8';
+const FORM_ID = '';
 const CALENDAR_ID = 'primary';
-const EVENT_TITLE = 'testing scrupt';
-const MAX_ATTENDEES = 2; // false if you don't want to limit attendees or a number
+const EVENT_TITLE = 'testing script';
+const MAX_ATTENDEES = false; // false if you don't want to limit attendees or a number
 const FORM_EMAIL_LABEL = 'Email' ; //If you use form email collection don't care about this parameter
 
 
