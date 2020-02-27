@@ -77,10 +77,10 @@ const getEvent = () => {
   const page = Calendar.Events.list(CALENDAR_ID,{q:EVENT_TITLE}) ;
   if(page.items && page.items.length > 0){
     if(page.items.length > 1){
-      throw 'We find multiple events with the title '+ EVENT_TITLE;
+      throw 'We found multiple events with the same title : '+ EVENT_TITLE;
     }
   }else{
-    throw 'We don`t find any event with this event title !!!' ;  
+    throw 'We didn\'t find an event with this title  !!!' ;  
   }
   Logger.log(page)
   return page.items[0]
