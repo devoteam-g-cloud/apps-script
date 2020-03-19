@@ -1,0 +1,12 @@
+{
+  "timeZone": "Europe/Paris",
+  "dependencies": {
+    "enabledAdvancedServices": [{
+      "userSymbol": "AdminDirectory",
+      "serviceId": "admin",
+      "version": "directory_v1"
+    }]
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8"
+}
