@@ -1,42 +1,6 @@
 /*
  * Send SMS in bulk with apps Script and Twilio
- * 
-  # # # Prerequisite # # # 
-  *
-  * You need a Twilio account : https://www.twilio.com/
-  * For testing you can use the test number from Twilio with your Test SID/Token
-  *
-  # # # Find test SID/Token # # # 
-  *
-  * Go there : https://www.twilio.com/console/project/settings
-  * They are on the right of the page.
-  *
-  # # # Test number # # # 
-  *
-  * They are all in the var testFromPhone.
-  * example : sendSMS('+33612324567','Apps Script Rocks',true,testFromPhone.no_error)
-  *
-  # # # How it works # # # 
-  *
-  * 1. If you want to extract data from your directory you can launch getAllUsersFromDirectory()
-  *    This will generate a Google Sheets, copy paste the ID of the sheet in the var sheetId
-  * 2. Run the function setupSheet()
-  *    It will add a sheet DATA to your Google Sheets with proper Columns.
-  * 3. Add your credentials to vars ACCOUNT_SID & AUTH_TOKEN
-  * 4. Add your phone number from Twilio to the FROM var
-  * 5. Fill out the sheet
-  *    WARNING : phone number must be like +336xxxxx in the cell enter the value like that '+336xxxxx
-  *    Dont forget the '
-  * 6. Run the function bulkSendSMS()
-  *
-  # # # For testing # # # 
-  *
-  * Replace your credentials with your testing credentials
-  * Use magic phone numbers from twilio and activate test mode for the sendSMS() function
-  * Normal request : sendSMS('+33612324567','Apps Script Rocks')
-  * Test request : sendSMS('+33612324567','Apps Script Rocks',true,testFromPhone.no_error)
  */
-
 
 const sheetId = '1Bbt-xxxxxxxxxxxx';
 const FROM = '+331xxxxxxx'; // Your number from Twilio
