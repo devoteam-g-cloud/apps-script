@@ -5,6 +5,7 @@
 function itemsWithMultipleParents() {
   var query = '"'+Session.getEffectiveUser().getEmail()+'" in owners ';
   var files; var output =[];
+  output.push(['Title','Id','Url','Parents']) ;
   var pageToken;
   do {
     files = Drive.Files.list({
