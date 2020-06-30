@@ -1,5 +1,7 @@
 /*
  * You can copy this file https://script.google.com/d/1AVgzwesQVQ7y5x6U_LKdpS6laurv5PuDvzC5l01029IqMOjmQ6RX8Zqh/edit
+ *
+ * => ADMIN ACCOUNT NEEDED
  */
 
 function googlePlusActiveUsers() {
