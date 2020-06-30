@@ -1,3 +1,7 @@
+/*
+ * You can copy this file https://script.google.com/d/1AVgzwesQVQ7y5x6U_LKdpS6laurv5PuDvzC5l01029IqMOjmQ6RX8Zqh/edit
+ */
+
 function googlePlusActiveUsers() {
   var nb_days = 100 ; // Nb of days to retrieve data, max 180
   var now = new Date();
