@@ -100,3 +100,13 @@ const getEmail = (itemResponses) => {
   }
   return false;
 }
+
+/*
+ * Helper function to stop triggers
+ */ 
+const stopTrigger = () => {
+  const allTriggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < allTriggers.length; i++) {
+    ScriptApp.deleteTrigger(allTriggers[i]);
+  }
+}
