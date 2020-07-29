@@ -26,6 +26,18 @@ const setup = () => {
     .create();
 }
 
+
+/*
+ * Stop triggers setup for this script
+ */
+const stopApp = () => {
+  const allTriggers = ScriptApp.getProjectTriggers();
+  for (let i = 0; i < allTriggers.length; i++) {
+    ScriptApp.deleteTrigger(allTriggers[i]);
+  }
+}
+
+
 /*
  * Function that will run at the onForm Submit trigger
  */
