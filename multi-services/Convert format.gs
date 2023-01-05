@@ -1,6 +1,6 @@
-/*
-* Convert Google Sheets to Excel
-*/
+/**
+ * Convert Google Sheets to Excel
+ */
 function excelFileGeneration(ss) {
 
   let id = getIdFromUrl(ss.getUrl());
@@ -24,9 +24,9 @@ function excelFileGeneration(ss) {
 
 
 
-/*
-* Convert one google Slide to PDF
-*/
+/**
+ * Convert one google Slide to PDF
+ */
 function convert(){
   // Options pour UrlFetch
   var options = {
@@ -49,4 +49,29 @@ function convert(){
 
 
 
+/**
+ * Génération du PDF à partir d'une url Google Sheets dans un dossier particulier
+ */
+function genratePdf(idSS, gidTab, urlFolder, name) {
+  // Options pour UrlFetch
+  var options = {
+    // muteHttpExceptions: true,
+    headers: {
+      Authorization: 'Bearer ' + ScriptApp.getOAuthToken()
+    }
+  };
 
+  // Génération de l'url permettant l'export en PDF
+  templateExportToPdfUrl = 'https://docs.google.com/spreadsheets/d/' + idSS + '/export?format=pdf&gid=' + gidTab;
+
+  // Génération du PDF
+  let pdfBlob = UrlFetchApp.fetch(templateExportToPdfUrl, options).getBlob();
+  const FOLDER_DESTINATION = DriveApp.getFolderById(getIdFromUrl(urlFolder));
+
+  let pdfFile = FOLDER_DESTINATION.createFile(pdfBlob);
+
+  pdfFile.setName(name + '.pdf');
+  let pdfUrl = pdfFile.getUrl();
+  pdfUrl = pdfUrl.split('?')[0];
+  return pdfUrl;
+}
