@@ -1,0 +1,169 @@
+/*
+* Creates a copy of the template in the desired folder and replace the placeholders with the coresponding tables
+*/
+function dataInsertionInDoc() {
+
+  // We open the template with the Drive app with its url
+  const TEMPLATE = DriveApp.getFileById(getIdFromUrl(GOOGLE_DOC_TEMPLATE_URL));
+  // We get the name of the template
+  const NAME_TEMPLATE = TEMPLATE.getName();
+  // We open the destination folder with the Drive app with its url
+  const FOLDER_OUTPUT = DriveApp.getFolderById(getIdFromUrl(FOLDER_OUTPUT_DOC_URL));
+  // We create a copy of the template in the proper folder
+  const FILE_OUTPUT = TEMPLATE.makeCopy(FOLDER_OUTPUT);
+  // We open the copy of the template with the Document app
+  const FILE_DOC = DocumentApp.openById(getIdFromUrl(FILE_OUTPUT.getUrl()));
+  // We set the name of the new file
+  FILE_DOC.setName(globalVariable.dateSetup + ' ' + globalVariable.algoSetup + ' ' + NAME_TEMPLATE);
+
+
+
+  const BODY = FILE_DOC.getBody();
+
+  // We replace the placeholder by the headers for table 1
+  replacePlaceholderByTable(BODY, TABLE1_HEADER_PLACEHOLDER, globalVariable.table1Headers.stringifiedDisplayedValues, globalVariable.table1Headers.backgroundColors, globalVariable.table1Headers.foregroundColors, globalVariable.table1Headers.styles, globalVariable.table1Headers.horizontalAlignments, globalVariable.table1Headers.listColumnsWidths); //
+
+  // We replace the placeholder by the table for table 1
+  replacePlaceholderByTable(BODY, TABLE1_PLACEHOLDER, globalVariable.table1.stringifiedDisplayedValues, globalVariable.table1.backgroundColors, globalVariable.table1.foregroundColors, globalVariable.table1.styles, globalVariable.table1.horizontalAlignments, globalVariable.table1.listColumnsWidths); //
+
+  // We replace the placeholder by the headers for table 2
+  replacePlaceholderByTable(BODY, TABLE2_HEADER_PLACEHOLDER, globalVariable.table2Headers.stringifiedDisplayedValues, globalVariable.table2Headers.backgroundColors, globalVariable.table2Headers.foregroundColors, globalVariable.table2Headers.styles, globalVariable.table2Headers.horizontalAlignments, globalVariable.table2Headers.listColumnsWidths); //
+
+  // We replace the placeholder by the table for table 2
+  replacePlaceholderByTable(BODY, TABLE2_PLACEHOLDER, globalVariable.table2.stringifiedDisplayedValues, globalVariable.table2.backgroundColors, globalVariable.table2.foregroundColors, globalVariable.table2.styles, globalVariable.table2.horizontalAlignments, globalVariable.table2.listColumnsWidths); //
+
+  // We replace the placeholder by the headers for table 3
+  replacePlaceholderByTable(BODY, TABLE3_HEADER_PLACEHOLDER, globalVariable.table3Headers.stringifiedDisplayedValues, globalVariable.table3Headers.backgroundColors, globalVariable.table3Headers.foregroundColors, globalVariable.table3Headers.styles, globalVariable.table3Headers.horizontalAlignments, globalVariable.table3Headers.listColumnsWidths); //
+
+  // We replace the placeholder by the table for table 3
+  replacePlaceholderByTable(BODY, TABLE3_PLACEHOLDER, globalVariable.table3.stringifiedDisplayedValues, globalVariable.table3.backgroundColors, globalVariable.table3.foregroundColors, globalVariable.table3.styles, globalVariable.table3.horizontalAlignments, globalVariable.table3.listColumnsWidths); //
+
+  // We replace the placeholder by the headers for table 4
+  replacePlaceholderByTable(BODY, TABLE4_HEADER_PLACEHOLDER, globalVariable.table4Headers.stringifiedDisplayedValues, globalVariable.table4Headers.backgroundColors, globalVariable.table4Headers.foregroundColors, globalVariable.table4Headers.styles, globalVariable.table4Headers.horizontalAlignments, globalVariable.table4Headers.listColumnsWidths); //
+
+  // We replace the placeholder by the table for table 4
+  replacePlaceholderByTable(BODY, TABLE4_PLACEHOLDER, globalVariable.table4.stringifiedDisplayedValues, globalVariable.table4.backgroundColors, globalVariable.table4.foregroundColors, globalVariable.table4.styles, globalVariable.table4.horizontalAlignments, globalVariable.table4.listColumnsWidths); //
+
+  // We replace the placeholder by the table for table 4 global zone
+  replacePlaceholderByTable(BODY, TABLE4_PLACEHOLDER_GLOBAL, globalVariable.table4GlobalAsOne.stringifiedDisplayedValues, globalVariable.table4GlobalAsOne.backgroundColors, globalVariable.table4GlobalAsOne.foregroundColors, globalVariable.table4GlobalAsOne.styles, globalVariable.table4GlobalAsOne.horizontalAlignments, globalVariable.table4GlobalAsOne.listColumnsWidths); //
+
+
+  // Gestion du format https://stackoverflow.com/questions/59709400/using-google-apps-script-to-copy-from-google-sheets-data-table-to-google-documen
+
+  /*
+  Exception: The parameters (number[]) don't match the method signature for DocumentApp.Body.appendTable.
+  myFunction	@ Code.gs:11
+  */
+
+  FILE_DOC.saveAndClose();
+}
+
+
+
+
+
+/*
+* Finds the childIndex of the container that contains the required text. It deletes the text and inserts a table into the same child
+*/
+function replacePlaceholderByTable(body, placeholder, tableValues, backgroundColors, foregroundColors, styles, horizontalAlignments, listColumnsWidths) {
+  // console.log(placeholder);
+  var rgel = body.findText(placeholder);
+  var element = rgel.getElement();
+  var childIndex = body.getChildIndex(element.getParent());
+
+  body.getChild(childIndex).asText().setText('');
+  var table = body.insertTable(childIndex, tableValues);
+
+  for (var i = 0; i < table.getNumRows(); i++) {
+    for (var j = 0; j < table.getRow(i).getNumCells(); j++) {
+      var obj = {};
+
+      // DocumentApp.Attribute : https://developers.google.com/apps-script/reference/document/attribute
+      obj[DocumentApp.Attribute.BACKGROUND_COLOR] = backgroundColors[i][j];
+      obj[DocumentApp.Attribute.FOREGROUND_COLOR] = foregroundColors[i][j].asRgbColor().asHexString();
+
+      // We handle the red foreground color that happens with no apparent reason only in the appreciation part for the "Stabilité des classes de risque" of table 4
+      // The black color font is forced, whatever the original color in the template
+      if (placeholder == TABLE4_PLACEHOLDER_GLOBAL && i == 0 && j == 1) {
+        obj[DocumentApp.Attribute.FOREGROUND_COLOR] = '#000000';
+      }
+
+      // Reproduce perceived font size
+      let fontSize = styles[i][j].getFontSize();
+      fontSize = Math.round(fontSize * RATIO_FROM_HELL_FONT_SIZE_FROM_SHEETS_TO_DOCS);
+      obj[DocumentApp.Attribute.FONT_SIZE] = fontSize;
+
+      // Reproduce perceived column width
+      let columnWidth = listColumnsWidths[j];
+      columnWidth = Math.round(columnWidth * RATIO_FROM_HELL_WIDTH_PIXEL_SIZE_FROM_SHEETS_TO_DOCS);
+      obj[DocumentApp.Attribute.WIDTH] = columnWidth;
+
+      // Reproduce bold
+      if (styles[i][j].isBold()) {
+        obj[DocumentApp.Attribute.BOLD] = true;
+      }
+
+      // Reproduce italic
+      if (styles[i][j].isItalic()) {
+        obj[DocumentApp.Attribute.ITALIC] = true;
+      }
+      // https://developers.google.com/apps-script/reference/document/horizontal-alignment
+
+
+      // TODO: doesn't work yet and makes the script crash
+      // HORIZONTAL ALIGNMENT
+      // https://developers.google.com/apps-script/reference/document/table#setattributesattributes
+      // https://developers.google.com/apps-script/reference/document/horizontal-alignment
+
+
+      let cellAsParagraph = table.getRow(i).getCell(j).getChild(0).asParagraph();
+      // Reproduce horizontal alignement center
+      if (horizontalAlignments[i][j] == 'center') {
+        cellAsParagraph.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+        // obj[DocumentApp.Attribute.HORIZONTAL_ALIGNMENT] = DocumentApp.HorizontalAlignment.CENTER;
+
+      }
+      // Reproduce horizontal alignement left
+      if (horizontalAlignments[i][j] == 'left') {
+        cellAsParagraph.setAlignment(DocumentApp.HorizontalAlignment.LEFT);
+        // obj[DocumentApp.Attribute.HORIZONTAL_ALIGNMENT] = DocumentApp.HorizontalAlignment.LEFT;
+
+      }
+      // Reproduce horizontal alignement right
+      if (horizontalAlignments[i][j] == 'right') {
+        cellAsParagraph.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
+        // obj[DocumentApp.Attribute.HORIZONTAL_ALIGNMENT] = DocumentApp.HorizontalAlignment.RIGHT;
+      }
+
+
+      // To handle values that match transparents settings that won't be handled in the Document App
+      if (obj.FOREGROUND_COLOR.length > 7) {
+        obj.FOREGROUND_COLOR = obj.FOREGROUND_COLOR.substring(0, 7)
+      }
+
+      table.getRow(i).getCell(j).setAttributes(obj);
+    }
+  }
+
+  // We create a specific style for Headers only
+  let style = {};
+  if (placeholder.indexOf('Header') < 0) {
+    // If we're NOT processing a header, then the grid will have the color that was setup (White)
+    style[DocumentApp.Attribute.BORDER_COLOR] = COLOR_HEXA_DOC_TABLES_GRID;
+
+  } else {
+    // If we're processing a header, then the grid will have the color of the background
+    style[DocumentApp.Attribute.BORDER_COLOR] = backgroundColors[0][0];
+  }
+
+  // style[DocumentApp.Attribute.BORDER_WIDTH] = 5; // If necessary in the future
+
+  // We apply the style
+  table.setAttributes(style);
+
+  // We get the following empty paragraph and reduce its font siez to the minimum to hide it as much as possible
+  let followingMandatoryEmptyParagraph = table.getNextSibling();
+  style = {};
+  style[DocumentApp.Attribute.FONT_SIZE] = 1;
+  followingMandatoryEmptyParagraph.setAttributes(style);
+}
