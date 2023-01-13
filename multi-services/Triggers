@@ -1,17 +1,76 @@
 /**
- * For sheet and an alphanumeric range, returns an array of the width of each column that it contains
+* Menu spreadsheet
+*/
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('MENU SCRIPT')
+    .addItem('Forcer la mise à jour', 'updateStatus')
+    .addSeparator()
+    .addItem('Activer le déclencheur du formulaire', 'formActivation')
+    .addItem('Activer le déclencheur de mise à jour automatique', 'updateActivation')
+    .addSeparator()
+    .addItem('/!\\ SUPPRIMER TOUS les déclencheurs', 'deleteAllTriggers')
+    .addToUi();
+}
+
+
+
+
+
+/**
+ * Fonction qui est exécutée via le choix dans le menu : Activer le déclencheur
  */
-function getColumnWidthsOfAnAlphanumericRange(sheet, alphaNumericRange) {
-  let ranges = alphaNumericRange.split(':');
-  let startingColumnIndex = ranges[0].match(/(\d+)/)[0];
-  let endingColumnIndex = ranges[1].match(/(\d+)/)[0];
+function formActivation() {
+  const FORM_ID = getIdFromUrl(FORM_URL);
+  
+  // Vérification de FORM_ID
+  if (FORM_ID.length < 1) { throw Error("Merci de saisir l'identifiant du formulaire.") };
+  let mimeTypeForm = Drive.Files.get(FORM_ID, { supportsAllDrives: true }).mimeType;
+  if (mimeTypeForm != GOOGLE_FORM_MIMETYPE) {
+    throw Error("L'identifiant du formulaire saisi ne correspond pas à un formulaire (" + GOOGLE_FORM_MIMETYPE + "), il correspond à : " + mimeTypeForm);
+  };
 
-  if (endingColumnIndex < startingColumnIndex) {return}
 
-  let widths = [];
-  for (let i = startingColumnIndex; i <= endingColumnIndex; i++){
-    widths.push(sheet.getColumnWidth(i));
+  // Vérification si le délencheur existe déjà
+  let functionName = 'onFormSubmit';
+  let allProjectTriggers = ScriptApp.getProjectTriggers();
+  console.log('Délencheurs existants : ');
+  console.log(allProjectTriggers);
+  let response = false;
+
+  for (let i = 0; i < allProjectTriggers.length; i++) {
+    if (functionName == allProjectTriggers[i].getHandlerFunction()) {
+      response = true;
+      break;
+    }
   }
 
-  return widths;
+
+  if (response == true) {
+    SpreadsheetApp.getUi().alert("Le formulaire est déjà activé (les réponses provoquent l'exécution du script).");
+
+  } else {
+    const FORM = FormApp.openById(FORM_ID);
+    ScriptApp.newTrigger(functionName)
+      .forForm(FORM)
+      .onFormSubmit()
+      .create()
+
+    SpreadsheetApp.getUi().alert("Succès, le formulaire a été activé.");
+  }
+}
+
+
+
+
+
+/**
+ * Fonction qui est exécutée via le chois dans le menu : /!\ SUPPRIMER les déclencheurs
+ * Fonction qui supprime tous les délencheurs
+ */
+function deleteAllTriggers() {
+  let allProjectTriggers = ScriptApp.getProjectTriggers();
+  for (let i = 0; i < allProjectTriggers.length; i++) {
+    ScriptApp.deleteTrigger(allProjectTriggers[i]);
+  }
 }
