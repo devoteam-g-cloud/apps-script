@@ -51,6 +51,7 @@ function convert(){
 
 /**
  * Génération du PDF à partir d'une url Google Sheets dans un dossier particulier
+ * https://spreadsheet.dev/comprehensive-guide-export-google-sheets-to-pdf-excel-csv-apps-script
  */
 function genratePdf(idSS, gidTab, urlFolder, name) {
   // Options pour UrlFetch
@@ -75,3 +76,26 @@ function genratePdf(idSS, gidTab, urlFolder, name) {
   pdfUrl = pdfUrl.split('?')[0];
   return pdfUrl;
 }
+
+
+/*
+var exportUrl = url_base + 'export?exportFormat=pdf&format=pdf' +
+'&gid=' + sheetTabId +
+'&id=' + ssID +
+'&range=' + range +
+//'&size=A3' + custom paper size  (width x hegiht) unit INCH   Example : Widht 7,2 CM X Hegiht 11CM        7,2 /2,54=2.8346456692913384 INCH  X  11/2,54=4.330708661417321 INCH
+'&size= 2.8346456692913384 X 4.330708661417321'
+'&scale=4' +
+'&portrait=false' +
+'&sheetnames=false' +
+'&printtitle=false' +
+'&pagenumbers=false' +
+'&gridlines=false' +
+'&fzr=false' +
+'&top_margin=0.0' +
+'&bottom_margin=0.0' +
+'&left_margin=0.0' +
+'&right_margin=0.0' +
+'&horizontal_alignment=CENTER' +
+'&vertical_alignment=MIDDLE';
+*/
