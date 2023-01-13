@@ -1,0 +1,36 @@
+/**
+ * Activer l'API Drive (!= DriveApp)
+ */
+
+//Récupérer le mimetype d'un fichier
+const GOOGLE_SPREADSHEET_MIMETYPE = 'application/vnd.google-apps.spreadsheet';
+let mimeTypeTemplate = Drive.Files.get(ssId, { supportsAllDrives: true }).mimeType;
+if (mimeTypeTemplate != GOOGLE_SPREADSHEET_MIMETYPE) {
+  throw Error("Le lien soumis via le formulaire ne correspond pas à une Google Spreadsheet (" + GOOGLE_SPREADSHEET_MIMETYPE + "), il correspond à : " + mimeTypeTemplate);
+};
+
+
+
+
+
+
+
+/**
+* Ajout éditeur sans notification
+*/
+function addEditorWithoutNotification(email, id) {
+  // On prépare les paramètres pour le partage sans notification
+  let resource = {
+    // enter email address here
+    value: email,
+    // choose from "user" or "group" if using a Google Group
+    type: 'user',
+    // choose from: "owner", "writer" or "reader"
+    role: 'writer'
+  };
+  let optionalArgs = {
+    sendNotificationEmails: false
+  };
+  // On partage sans notification
+  Drive.Permissions.insert(resource, id, optionalArgs);
+}
