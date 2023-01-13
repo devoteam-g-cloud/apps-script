@@ -1,0 +1,16 @@
+/**
+ * Récupère l'objet d'information users
+ * Nécessite l'ajout du service AdminDirectory
+ * https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/get?apix_params=%7B%22userKey%22%3A%22eudes.grange%40devoteamgcloud.com%22%2C%22viewType%22%3A%22domain_public%22%7D
+ */
+function getUserFullName(email) {
+  // console.log(email)
+  try{
+      let userObject = AdminDirectory.Users.get(email, { viewType: 'domain_public' }); // Request had insufficient authentication scopes.
+      // console.log(userObject)
+      return userObject.name.fullName;
+  } catch (err){
+    // console.log(err.message);
+    return false;
+  }
+}
