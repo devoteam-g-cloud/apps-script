@@ -1,0 +1,110 @@
+/**
+ * Génération du document PV de recette à partir du template
+ */
+function documentGeneration() {
+
+  checkParamsForDocumentGeneration();
+
+  const DOCUMENT_TEMPLATE = DriveApp.getFileById(idTemplate);
+  const DOCUMENT_TEMPLATE_NAME = DOCUMENT_TEMPLATE.getName();
+  const FOLDER = DriveApp.getFolderById(idFolder);
+
+  const DOCUMENT_DRIVEAPP = DOCUMENT_TEMPLATE.makeCopy(FOLDER);
+  const DOCUMENT_ID = DOCUMENT_DRIVEAPP.getId();
+  const DOCUMENT_URL = DOCUMENT_DRIVEAPP.getUrl();
+
+  const DOCUMENT = DocumentApp.openById(DOCUMENT_ID);
+  DOCUMENT.setName(customer + ' - ' + DOCUMENT_TEMPLATE_NAME + ' (' + dateFormated + ')');
+
+
+  const BODY = DOCUMENT.getBody();
+
+
+  replacePlaceholder(BODY, '{{commentstitle}}', 'Commentaires / Remarques générales', 'default', '', '', '', 2);
+  replacePlaceholder(BODY, '{{commentstable}}', [[comments]], 'simpleTable', BACKGROUND_COLOR, HEX_COLOR_WHITE, 9, 0);
+
+
+  let tableOptions = '▢ Acceptée\n\n▢ Acceptée avec réserves\n\n▢ Refusée';
+  let tableToInsert = [
+    ['Fonctionnalités', 'Décision', 'Commentaires'],
+    ['Test 1', tableOptions, ''],
+    ['Test 2', tableOptions, '']
+  ];
+  replacePlaceholder(BODY, '{{createFullTableHere}}', tableToInsert, 'createHeadersAndTable', BACKGROUND_COLOR, HEX_COLOR_WHITE, 9, '');
+
+
+
+
+  TAB_RESULTS.getRange(RANGE_GENERATED_DOCUMENT_URL).setValue(DOCUMENT_URL);
+}
+
+
+
+
+
+/**
+ * Traitement des différents cas de figure pour remplacer les placeholders
+ */
+function replacePlaceholder(body, placeholder, value, option, backgroundColor, borderColor, fontSize, headingNumber) {
+  console.log(placeholder)
+  /**
+   * Style
+   */
+  var attributesObject = {};
+  attributesObject[DocumentApp.Attribute.FONT_FAMILY] = DEFAULT_POLICE;
+  if (backgroundColor != undefined && backgroundColor.length > 0) { attributesObject[DocumentApp.Attribute.BACKGROUND_COLOR] = backgroundColor };
+  if (fontSize != undefined && fontSize - 0 != NaN && fontSize > 0) { attributesObject[DocumentApp.Attribute.FONT_SIZE] = fontSize };
+  if (headingNumber != undefined && headingNumber - 0 != NaN && headingNumber > 0) { attributesObject[DocumentApp.Attribute.HEADING] = eval('DocumentApp.ParagraphHeading.HEADING' + headingNumber) };
+
+  var attributesObjectTable = {};
+  if (borderColor != undefined && borderColor.length > 0) { attributesObjectTable[DocumentApp.Attribute.BORDER_COLOR] = borderColor };
+
+  var element = body.findText(placeholder).getElement();
+  var childIndex = body.getChildIndex(element.getParent());
+
+
+  if (option == 'default') {
+    let text = body.getChild(childIndex).asText().setText(value);
+    text.setAttributes(attributesObject);
+
+
+  } else if (option == 'simpleTable') {
+    body.getChild(childIndex).asText().setText('');
+    let table = body.insertTable(childIndex, value);
+    // Application de la couleur de la grille
+    try {
+      table.setAttributes(attributesObjectTable);
+    } catch (err) {
+      console.log(err);
+    }
+    // Application du style sur chaque cellule du tableau
+    table.getRow(0).getCell(0).setAttributes(attributesObject);
+
+  } else if (option = 'createHeadersAndTable') {
+    body.getChild(childIndex).asText().setText('');
+    let table = body.insertTable(childIndex, value);
+    // Application de la couleur de la grille
+    try {
+      table.setAttributes(attributesObjectTable);
+    } catch (err) {
+      console.log(err);
+    }
+
+    // Application du style sur chaque cellule du tableau
+    for (let i = 0; i < value.length; i++) {
+      for (let j = 0; j < value[0].length; j++) {
+        table.getRow(i).getCell(j).setAttributes(attributesObject);
+      }
+    }
+    // Formatage de la ligne des entêtes
+    attributesObject[DocumentApp.Attribute.BACKGROUND_COLOR] = HEX_COLOR_RED_DGC;
+    attributesObject[DocumentApp.Attribute.FOREGROUND_COLOR] = HEX_COLOR_WHITE;
+    attributesObject[DocumentApp.Attribute.BOLD] = true;
+    console.log(attributesObject);
+    for (let j = 0; j < value[0].length; j++) {
+      table.getRow(0).getCell(j).setAttributes(attributesObject);
+      let cellAsParagraph = table.getRow(0).getCell(j).getChild(0).asParagraph();
+      cellAsParagraph.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    }
+  }
+}
