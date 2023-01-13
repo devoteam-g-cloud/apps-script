@@ -1,0 +1,224 @@
+/**
+ * Création d'un document dans Eversign
+ */
+function createEversignDocument(pdfBlob, signersList, documentName) {
+  console.log('function createEversignDocument');
+
+  // Conversion pdfBlob en base64
+  let pdfBytes = pdfBlob.getBytes();
+  let pdfbase64 = Utilities.base64Encode(pdfBytes);
+
+
+  let url = 'https://api.eversign.com/api/document' + '?access_key=' + API_ACCESS_KEY + '&business_id=' + BUSINESS_ID;
+
+
+  let body = {
+    "sandbox": SANDBOX,
+    "is_draft": 0,
+    // "embedded": 0, // ALERT! Plus défini dans la doc, à priori pour template uniquement
+    "title": "Entretien annuel à signer - " + signersList[0].name, // TODO: A valider (personnalisation / langue)
+    "message": "", // TODO: message par défaut ? Quelle langue ? Indiquer qu'il faut ajouter sa signature et la date de la signature ?
+    "use_signer_order": 0, // ALERT! La documentation ne détaille pas cette option (le lien ne fonctionne pas). Cela aurait pu être très utile.
+    "reminders": 1, // ALERT! La documentation ne détaille pas cette option (le lien ne fonctionne pas). Cela aurait pu être très utile.
+    "require_all_signers": 1,
+    "custom_requester_name": "", // ALERT! If used, all email communication related to this document and signing-related notifications will carry this name as the requester (sender) name.
+    "custom_requester_email": "", // ALERT! If used, all email communication related to this document and signing-related notifications will carry this email address as the requester (sender) email address.
+    "redirect": "", // ALERT! If empty, the default Post-Signature Completion URL specified in your eversign Business or the eversign signature completion page will be used.
+    "redirect_decline": "", // ALERT! If empty, the default Post-Signature Decline URL specified in your eversign Business or the eversign signature declined page will be used.
+    "client": "",
+    "expires": "", // ALERT! If empty, the default document expiration period specified in your business settings will be used.
+    "embedded_signing_enabled": 0,
+    "flexible_signing": 1, // ALERT! Signers will be able to place their own fields during signing.
+    "use_hidden_tags": 0,
+    "files": [{
+      "name": documentName, // TODO: A valider (personnalisation / langue)
+      "file_base64": pdfbase64
+    }],
+    "signers": signersList,
+    "recipients": signersList // ALERT! Beaucoup de mails vont être reçus en terme de notifications
+  }
+
+  let params = {
+    "method": "POST",
+    "payload": JSON.stringify(body)
+  }
+
+  let eversignResponse = UrlFetchApp.fetch(url, params);
+
+
+  let responseCode = eversignResponse.getResponseCode();
+  console.log('responseCode');
+  console.log(responseCode);
+  // 200
+
+  let responseJson = JSON.parse(eversignResponse.toString());
+  console.log('responseJson');
+  console.log(responseJson);
+
+  let document_hash = responseJson.document_hash;
+  console.log('document_hash');
+  console.log(document_hash);
+
+
+  let response = {};
+
+  try {
+    response.document_hash = document_hash;
+  } catch (err){
+    console.log(err.message);
+  }
+
+  try {
+    response.errorMessage = responseJson.error.type;
+  } catch (err){
+    console.log(err.message);
+  }
+
+  return response;
+}
+
+
+
+
+
+/**
+ * Suppression d'un document dans Eversign
+ */
+function deleteEversignDocument(eversignId) {
+  console.log('function deleteEversignDocument');
+
+  /**
+  * Annulation
+  * https://eversign.com/api/documentation/methods#cancel-document
+  */
+
+  let url = 'https://api.eversign.com/api/document' + '?access_key=' + API_ACCESS_KEY + '&business_id=' + BUSINESS_ID + '&document_hash=' + eversignId + '&cancel=1';
+  let params = { "method": "DELETE" };
+
+  let response = UrlFetchApp.fetch(url, params);
+
+  response = JSON.parse(response.toString());
+  let success = response.success;
+
+  if (success) {
+    console.log('Succès annulation document: ' + eversignId);
+  } else {
+    console.log('Echec annulation document: ' + eversignId);
+    console.log(response.error.type)
+  }
+
+
+  /**
+  * Suppression
+  * https://eversign.com/api/documentation/methods#delete-document
+  // Suppression annulée car bug API (no_delete_permission) et pour garder un suivi facile des éléments annulés
+  */
+  /*
+  url = 'https://api.eversign.com/api/document' + '?access_key=' + API_ACCESS_KEY + '&business_id=' + BUSINESS_ID + '&document_hash=' + eversignId;
+
+  response = UrlFetchApp.fetch(url, params);
+
+  response = JSON.parse(response.toString());
+  success = response.success;
+
+  if (success){
+    console.log('Succès suppression document: ' + eversignId);
+  } else {
+    console.log('Echec suppression document: ' + eversignId);
+    console.log(response.error.type)
+  }
+  */
+
+  return success
+}
+
+
+
+
+
+/**
+ * Récupération PDF signé dans Eversign si possible
+ */
+function getFinalPDFDocument(eversignId) {
+  console.log('function getFinalPDFDocument');
+
+  let url = 'https://api.eversign.com/api/document' + '?access_key=' + API_ACCESS_KEY + '&business_id=' + BUSINESS_ID + '&document_hash=' + eversignId;
+
+  let response = UrlFetchApp.fetch(url);
+
+  response = JSON.parse(response.toString());
+  let title = response.title;
+  let is_completed = response.is_completed;
+
+
+  if (is_completed != undefined && is_completed) {
+    // https://eversign.com/api/documentation/methods#download-final-pdf
+    console.log("COMPLET");
+
+    // BACK
+
+    url = 'https://api.eversign.com/api/download_final_document' + '?access_key=' + API_ACCESS_KEY + '&business_id=' + BUSINESS_ID + '&document_hash=' + eversignId + '&audit_trail=1';
+
+    pdfBlob = UrlFetchApp.fetch(url).getBlob();
+    console.log("BLOB RECUPERE");
+    return [pdfBlob, title]
+  }
+
+  return false
+}
+
+
+
+
+
+/**
+ * Exécuté via le déclencheur horaire
+ */
+function updateStatus() {
+  console.log('function updateStatus');
+  // Accès à l'onglet des données dans le fichier du script
+  const TAB_DATA = SS.getSheetByName(NAME_TAB_DATA);
+  // Récupération des données script
+  const SCRIPT_DATA = TAB_DATA.getRange('A:J').getValues();
+  let timeStamp = new Date();
+
+  for (let indexLine = 0; indexLine < SCRIPT_DATA.length; indexLine++) {
+    let dataLine = SCRIPT_DATA[indexLine];
+    let status = dataLine[7];
+
+    // On vérifie la ligne uniquement si le statut correspond à 'Envoyé à eversign, attente signatures'
+    if (status == STATUS_LIST[2]) {
+      let eversignId = dataLine[8];
+      let returnedArray = getFinalPDFDocument(eversignId);
+
+
+      if (!returnedArray) {
+        // Toutes les signatures ne sont pas présentes, on met à jour uniquement le timestamp
+        dataLine[0] = timeStamp;
+
+      } else {
+        // Toutes les signatures sont là, on récupère le PDF signé
+        let urlFolder = dataLine[5];
+        const FOLDER_DESTINATION = DriveApp.getFolderById(getIdFromUrl(urlFolder));
+
+        let pdfBlob = returnedArray[0];
+        let name = returnedArray[1];
+
+        let pdfFile = FOLDER_DESTINATION.createFile(pdfBlob);
+
+        pdfFile.setName(name + ' - SIGNE.pdf');
+        let pdfUrl = pdfFile.getUrl();
+        pdfUrl = pdfUrl.split('?')[0];
+
+        dataLine[9] = pdfUrl;
+        dataLine[0] = timeStamp;
+        dataLine[7] = STATUS_LIST[3];
+      }
+
+
+
+      // On met à jour la ligne // ALERT! On met à jour chaque ligne ce qui est lent mais permet de ne pas trop gêner les éditions en cours
+      TAB_DATA.getRange(indexLine + 1, 1, 1, dataLine.length).setValues([dataLine]);
+    }
+  }
+}
