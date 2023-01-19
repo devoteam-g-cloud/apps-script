@@ -27,9 +27,21 @@ function onlyUnique(value, index, self) {
 
 
 /**
+ * Returns a transposed array
+ */
+function tranposeArray(array) {
+  output = array[0].map((_, colIndex) => array.map(row => row[colIndex]));
+  return output;
+}
+
+
+
+
+
+/**
  * Removes the spaces from a string
  */
-function removeSpacesFromString(string){
+function removeSpacesFromString(string) {
   return string.replace(/\s/g, '');
 }
 
@@ -50,6 +62,22 @@ function getParentFolderUrl(id) {
     urlParentFolder = parent.getUrl();
   }
   return urlParentFolder;
+}
+
+
+
+
+
+/**
+ * Ajoute des majuscules au début des mots (Nom Propre)
+ */
+function toTitleCase(str) {
+  return str.replace(
+    /\w\S*/g,
+    function (txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    }
+  );
 }
 
 
