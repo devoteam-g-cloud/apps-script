@@ -27,7 +27,7 @@ function excelFileGeneration(ss) {
 /**
  * Convert one google Slide to PDF
  */
-function convert(){
+function convert() {
   // Options pour UrlFetch
   var options = {
     headers: {
@@ -37,7 +37,7 @@ function convert(){
 
   // Génération de l'url permettant l'export en PDF
   templateExportToPdfUrl = 'https://docs.google.com/presentation/d/' + '{{id drive source}}' +
-  '/export/pdf?id=' + '{{id drive source}}' + '&pageid=' + '{{slideId}}';
+    '/export/pdf?id=' + '{{id drive source}}' + '&pageid=' + '{{slideId}}';
 
   // console.log(templateExportToPdfUrl);
 
@@ -63,15 +63,18 @@ function genratePdf(idSS, gidTab, urlFolder, name) {
   };
 
   // Génération de l'url permettant l'export en PDF
-  templateExportToPdfUrl = 'https://docs.google.com/spreadsheets/d/' + idSS + '/export?format=pdf&gid=' + gidTab;
+  let urlBase = 'https://docs.google.com/spreadsheets/d/' + idSS + '/'
+
+  let urlExt = 'export?exportFormat=pdf&format=pdf'
+    + '&id=' + idSS
+    + '&gridlines=false'  // hide gridlines
 
   // Génération du PDF
-  let pdfBlob = UrlFetchApp.fetch(templateExportToPdfUrl, options).getBlob();
-  const FOLDER_DESTINATION = DriveApp.getFolderById(getIdFromUrl(urlFolder));
+  let response = UrlFetchApp.fetch(urlBase + urlExt, options);
+  let pdfBlob = response.getBlob().setName(name + '.pdf');
+  const FOLDER = DriveApp.getFolderById(getIdFromUrl(urlFolder));
+  let pdfFile = FOLDER.createFile(pdfBlob);
 
-  let pdfFile = FOLDER_DESTINATION.createFile(pdfBlob);
-
-  pdfFile.setName(name + '.pdf');
   let pdfUrl = pdfFile.getUrl();
   pdfUrl = pdfUrl.split('?')[0];
   return pdfUrl;
@@ -80,8 +83,19 @@ function genratePdf(idSS, gidTab, urlFolder, name) {
 
 /*
 var exportUrl = url_base + 'export?exportFormat=pdf&format=pdf' +
-'&gid=' + sheetTabId +
+'&gid=' + sheetTabId +  // if omitted should print the whole spreadsheet
 '&id=' + ssID +
+
+// Print either the entire Spreadsheet or the specified sheet if optSheetId is provided
++ (sheetId ? ('&gid=' + sheetId) : ('&id=' + spreadsheetId))
+// following parameters are optional...
++ '&size=letter'      // paper size
++ '&portrait=true'    // orientation, false for landscape
++ '&fitw=true'        // fit to width, false for actual size
++ '&sheetnames=false&printtitle=false&pagenumbers=false'  //hide optional headers and footers
++ '&gridlines=false'  // hide gridlines
++ '&fzr=false';       // do not repeat row headers (frozen rows) on each page
+
 '&range=' + range +
 //'&size=A3' + custom paper size  (width x hegiht) unit INCH   Example : Widht 7,2 CM X Hegiht 11CM        7,2 /2,54=2.8346456692913384 INCH  X  11/2,54=4.330708661417321 INCH
 '&size= 2.8346456692913384 X 4.330708661417321'
